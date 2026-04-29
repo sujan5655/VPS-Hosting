@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    /* Modern JavaScript & Browser Compatibility: */
+    "target": "ESNext", // Uses the latest ECMAScript features for modern JavaScript support
+
+    /* Module System Settings: */
+    "module": "NodeNext", // Configures Node.js to use ESM module system
+    "rootDir": "src", // Specifies the source directory for your code
+    "outDir": "dist", // Specifies the output directory for compiled files
+    "sourceMap": true, // Enables source maps for easier debugging
+"types":["node"],
+    /* Module Resolution Strategy: */
+    "moduleResolution": "NodeNext", // Resolves modules using Node’s ESM strategy
+    "moduleDetection": "force", // Forces TypeScript to treat files as modules
+
+    /* Interoperability and File Consistency: */
+    "esModuleInterop": true, // Ensures compatibility between CommonJS and ESM modules
+    "forceConsistentCasingInFileNames": true, // Prevents case-sensitivity issues across platforms
+
+    /* Strict Type-Checking: */
+    "strict": true, // Enables strict type-checking for fewer runtime errors
+
+    /* Decorator Support: */
+    "experimentalDecorators": true, // Enables experimental decorator support
+    "emitDecoratorMetadata": true, // Enables metadata emission for decorators
+
+    // Include modern ECMAScript (ES2022) and DOM APIs for frontend
+    "lib": ["ES2022", "DOM"] // Include ES2022 features and DOM APIs for frontend development
+    // Uncomment this for backend code without DOM APIs
+    /* "lib": ["ES2022"] */
+  },
+  "include": ["src"], // Includes the `src` directory in the project
+  "exclude": ["node_modules", "dist"] // Excludes `node_modules` and `dist` directories from the project
+}
