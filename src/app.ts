@@ -38,7 +38,7 @@ app.get("/api/test", (req, res) => {
 
   console.log('🧪 Main app test endpoint hit!');
 
-  res.json({ message: "CI/CD pipeline is working properly! Now i can completely host a backend in the VPS Server with the change same github repository", timestamp: new Date() });
+  res.json({ message: "CI/CD pipeline is working properly! Now i can completely host a backend in the VPS Server with the change same github repository.!!!Done By Sujan Chaudhary", timestamp: new Date() });
 
 });
 
