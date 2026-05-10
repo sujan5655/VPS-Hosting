@@ -29,14 +29,14 @@ async function startServer() {
     console.log("✅ Database connected");
 
     // Clean up duplicate categories before sync
-    await cleanupDuplicateCategories();
+    // await cleanupDuplicateCategories();
 
     // Creates tables automatically
     await sequelize.sync({ alter: true });
     console.log("📦 Tables created/updated");
 
-    // Seed initial categories
-    await seedCategories();
+    // // Seed initial categories
+    // await seedCategories();
 
     const server = app.listen(5000, () => {
       console.log("🚀 Server running on port 5000");
