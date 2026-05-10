@@ -15,7 +15,11 @@ async function setupProduction() {
     // 🔌 DB connection check
     await sequelize.authenticate();
     console.log("✅ Database connected");
+ 
 
+    // 🔥 FIX HERE
+    await sequelize.sync(); // or replace with migrations
+    console.log("📦 Database synced");
     // 🧠 Step 1: RBAC seed (idempotent inside seedRBAC)
     console.log("📋 Seeding RBAC...");
     await seedRBAC();
