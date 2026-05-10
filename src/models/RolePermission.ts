@@ -37,4 +37,7 @@ export class RolePermission extends Model {
 
   @BelongsTo(() => Role)
   declare role: Role;
+
+  @BelongsTo(() => Permission)
+  declare permission: Permission;
 }

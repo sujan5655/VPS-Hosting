@@ -4,8 +4,10 @@ import {
   Model,
   DataType,
   HasMany,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { RolePermission } from "./RolePermission.js";
+import { Role } from "./Role.js";
 
 @Table({
   tableName: "permissions",
@@ -49,6 +51,9 @@ export class Permission extends Model {
     defaultValue: true,
   })
   declare isActive: boolean;
+
+  @BelongsToMany(() => Role, () => RolePermission)
+declare roles: Role[];
 
   @HasMany(() => RolePermission)
   declare rolePermissions: RolePermission[];

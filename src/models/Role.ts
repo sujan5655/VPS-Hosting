@@ -3,9 +3,12 @@ import {
   Column,
   Model,
   DataType,
-  HasMany,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { User } from "./User.js";
+import { UserRole } from "./UserRole.js";
+import { Permission } from "./Permission.js";
+import { RolePermission } from "./RolePermission.js";
 
 @Table({
   tableName: "roles",
@@ -38,6 +41,10 @@ export class Role extends Model {
   })
   declare isActive: boolean;
 
-  @HasMany(() => User)
+  @BelongsToMany(() => User, () => UserRole)
   declare users: User[];
+  @BelongsToMany(() => Permission, () => RolePermission)
+declare permissions: Permission[];
+
+
 }

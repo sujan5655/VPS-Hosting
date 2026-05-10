@@ -3,10 +3,10 @@ import {
   Column,
   Model,
   DataType,
-  ForeignKey,
-  BelongsTo,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { Role } from "./Role.js";
+import { UserRole } from "./UserRole.js";
 
 @Table({
   tableName: "users",
@@ -38,13 +38,6 @@ export class User extends Model {
   })
   declare password: string;
 
-  @ForeignKey(() => Role)
-  @Column({
-    type: DataType.UUID,
-    allowNull: true,
-  })
-  declare roleId: string;
-
-  @BelongsTo(() => Role)
-  declare role: Role;
+  @BelongsToMany(() => Role, () => UserRole)
+  declare roles: Role[];
 }

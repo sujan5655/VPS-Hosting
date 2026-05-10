@@ -1,22 +1,33 @@
 import { seedRBAC } from "../seed/rbacSeed.js";
 import { createAdmin } from "./createAdmin.js";
+import { sequelize } from "../config/database.js";
 
 async function setupProduction() {
   try {
     console.log("🚀 Starting production setup...");
 
-    // Step 1: Seed roles & permissions
-    console.log("📋 Step 1: Setting up roles and permissions...");
-    await seedRBAC();
-    console.log("✅ Roles and permissions created");
+    // 🔐 ENV SAFETY CHECK (VERY IMPORTANT)
+    if (process.env.RUN_SETUP !== "true") {
+      console.log("⚠️ RUN_SETUP is false. Skipping setup.");
+      process.exit(0);
+    }
 
-    // Step 2: Create first admin
-    console.log("👤 Step 2: Creating first admin user...");
+    // 🔌 DB connection check
+    await sequelize.authenticate();
+    console.log("✅ Database connected");
+
+    // 🧠 Step 1: RBAC seed (idempotent inside seedRBAC)
+    console.log("📋 Seeding RBAC...");
+    await seedRBAC();
+    console.log("✅ RBAC seeded");
+
+    // 👤 Step 2: Admin creation (must be idempotent too)
+    console.log("👤 Creating admin...");
     await createAdmin();
-    console.log("✅ Admin user created");
+    console.log("✅ Admin ready");
 
     console.log("\n🎉 Production setup completed successfully!");
-    console.log("🔐 You can now login with your admin credentials");
+
     process.exit(0);
   } catch (error) {
     console.error("❌ Setup failed:", error);

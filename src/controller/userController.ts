@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/User.js";
 import { Role } from "../models/Role.js";
+import { UserRole } from "../models/UserRole.js";
 import { Op } from "sequelize";
 
 interface AuthRequest extends Request {
@@ -9,26 +10,17 @@ interface AuthRequest extends Request {
 
 export const updateUserRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, newRoleId } = req.body;
+    const { userId, roleIds } = req.body;
 
     // Validate input
-    if (!userId || !newRoleId) {
+    if (!userId || !Array.isArray(roleIds) || roleIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Please provide userId and newRoleId"
+        message: "Please provide userId and roleIds array"
       });
     }
 
-    // Check if the new role exists
-    const newRole = await Role.findByPk(newRoleId);
-    if (!newRole) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role ID"
-      });
-    }
-
-    // Find and update the user
+    // Check if the user exists
     const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({
@@ -37,18 +29,38 @@ export const updateUserRole = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Update user role
-    await user.update({ roleId: newRoleId });
+    // Check if all roles exist
+    const roles = await Role.findAll({
+      where: { id: roleIds, isActive: true }
+    });
 
-    // Get updated user with role
+    if (roles.length !== roleIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "One or more roles not found or inactive"
+      });
+    }
+
+    // Remove existing roles for this user
+    await UserRole.destroy({ where: { userId } });
+
+    // Assign new roles
+    const userRolesToCreate = roleIds.map(roleId => ({
+      userId,
+      roleId
+    }));
+
+    await UserRole.bulkCreate(userRolesToCreate, { ignoreDuplicates: true });
+
+    // Get updated user with roles
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: Role, as: 'role' }],
+      include: [{ model: Role, as: 'roles' }],
       attributes: { exclude: ['password'] }
     });
 
     res.status(200).json({
       success: true,
-      message: "User role updated successfully",
+      message: "User roles updated successfully",
       data: updatedUser
     });
   } catch (error) {
@@ -77,7 +89,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
     const includeClause: any = [
       { 
         model: Role, 
-        as: 'role',
+        as: 'roles',
         where: role ? { name: role } : undefined,
         required: !!role
       }

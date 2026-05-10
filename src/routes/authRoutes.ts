@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, getAllUsers, loginUser } from "../controller/authController.js";
+import { registerUser, getAllUsers, loginUser, refreshToken, logout } from "../controller/authController.js";
 import { authenticateToken, requirePermission, requireRole } from "../middleware/rbac.js";
 
 const router = Router();
@@ -9,6 +9,12 @@ router.post("/register", registerUser);
 
 // Login user
 router.post("/login", loginUser);
+
+// Refresh access token
+router.post("/refresh", refreshToken);
+
+// Logout user
+router.post("/logout", logout);
 
 // Get all users (requires authentication and read:users permission)
 router.get("/users", authenticateToken, requirePermission("users", "read"), getAllUsers);

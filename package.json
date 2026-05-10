@@ -8,15 +8,30 @@
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "seed": "tsx src/scripts/seedDatabase.ts"
+    "setup:prod": "tsx src/scripts/setupProduction.ts",
+    "seed": "cross-env RUN_SETUP=true tsx src/scripts/setupProduction.ts",
+    "fix-images": "node -e \"require('dotenv').config()\" src/seed/fixImages.js",
+    "sync-admin": "tsx src/scripts/syncAdminUser.ts",
+    "fix-admin-permissions": "tsx src/scripts/fixAdminPermissions.ts",
+    "debug-admin-permissions": "tsx src/scripts/debugAdminPermissions.ts",
+    "test-product-update": "tsx src/scripts/testProductUpdate.ts",
+    "check-login-response": "tsx src/scripts/checkLoginResponse.ts",
+    "test-middleware": "tsx src/scripts/testMiddleware.ts",
+    "test-http-middleware": "tsx src/scripts/testHttpMiddleware.ts",
+    "test-permission-check": "tsx src/scripts/testPermissionCheck.ts",
+    "test-form-data": "tsx src/scripts/testFormData.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
+    "cross-env": "^10.1.0",
+    "sequelize-cli": "^6.6.5",
+    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
@@ -25,13 +40,19 @@
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/sequelize": "^6.12.0",
+    "@types/uuid": "^11.0.0",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "mysql2": "^3.22.3",
     "pg": "^8.20.0",
     "sequelize": "^6.37.8",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "uuid": "^14.0.0"
   }
 }

@@ -1,186 +1,232 @@
 import { Role } from "../models/Role.js";
 import { Permission } from "../models/Permission.js";
 import { RolePermission } from "../models/RolePermission.js";
-import { sequelize } from "../config/database.js";
+import { User } from "../models/User.js";
+import { UserRole } from "../models/UserRole.js";
+import bcrypt from "bcrypt";
+
+
 
 export const seedRBAC = async () => {
   try {
-    // Sync database
-    await sequelize.sync({ force: false });
+    console.log("🌱 Seeding RBAC...");
 
-    // Create e-commerce roles
-    const roles = await Role.bulkCreate([
+    // 1. Create Roles
+    const rolesData = [
       { name: 'admin', description: 'System administrator with full access to all features', isActive: true },
       { name: 'manager', description: 'Store manager with oversight and reporting capabilities', isActive: true },
       { name: 'seller', description: 'Product seller who can manage their own products and orders', isActive: true },
       { name: 'staff', description: 'Store staff with order processing and customer service capabilities', isActive: true },
       { name: 'user', description: 'Regular customer with shopping and order management', isActive: true }
-    ], { ignoreDuplicates: true });
+    ];
 
-    console.log('Roles created:', roles.map(r => r.name));
+    const roles = await Role.bulkCreate(rolesData, { ignoreDuplicates: true });
 
-    // Create comprehensive e-commerce permissions
-    const permissions = await Permission.bulkCreate([
-      // User Management permissions
-      { name: 'read:users', description: 'View user information and profiles', resource: 'users', action: 'read', isActive: true },
-      { name: 'create:users', description: 'Create new user accounts', resource: 'users', action: 'create', isActive: true },
-      { name: 'update:users', description: 'Update user information', resource: 'users', action: 'update', isActive: true },
-      { name: 'delete:users', description: 'Delete user accounts', resource: 'users', action: 'delete', isActive: true },
-      { name: 'manage:users', description: 'Full user management access', resource: 'users', action: 'manage', isActive: true },
-      
-      // Product Management permissions
-      { name: 'read:products', description: 'View product information', resource: 'products', action: 'read', isActive: true },
-      { name: 'create:products', description: 'Add new products to catalog', resource: 'products', action: 'create', isActive: true },
-      { name: 'update:products', description: 'Update product information', resource: 'products', action: 'update', isActive: true },
-      { name: 'delete:products', description: 'Remove products from catalog', resource: 'products', action: 'delete', isActive: true },
-      { name: 'manage:products', description: 'Full product management access', resource: 'products', action: 'manage', isActive: true },
-      { name: 'manage:own-products', description: 'Manage own seller products only', resource: 'products', action: 'manage-own', isActive: true },
-      
-      // Order Management permissions
-      { name: 'read:orders', description: 'View order information', resource: 'orders', action: 'read', isActive: true },
-      { name: 'create:orders', description: 'Create new orders', resource: 'orders', action: 'create', isActive: true },
-      { name: 'update:orders', description: 'Update order status and information', resource: 'orders', action: 'update', isActive: true },
-      { name: 'delete:orders', description: 'Cancel or delete orders', resource: 'orders', action: 'delete', isActive: true },
-      { name: 'manage:orders', description: 'Full order management access', resource: 'orders', action: 'manage', isActive: true },
-      { name: 'process:orders', description: 'Process and fulfill orders', resource: 'orders', action: 'process', isActive: true },
-      { name: 'read:own-orders', description: 'View own customer orders', resource: 'orders', action: 'read-own', isActive: true },
-      
-      // Category Management permissions
-      { name: 'read:categories', description: 'View product categories', resource: 'categories', action: 'read', isActive: true },
-      { name: 'create:categories', description: 'Create new product categories', resource: 'categories', action: 'create', isActive: true },
-      { name: 'update:categories', description: 'Update category information', resource: 'categories', action: 'update', isActive: true },
-      { name: 'delete:categories', description: 'Delete product categories', resource: 'categories', action: 'delete', isActive: true },
-      { name: 'manage:categories', description: 'Full category management access', resource: 'categories', action: 'manage', isActive: true },
-      
-      // Inventory Management permissions
-      { name: 'read:inventory', description: 'View inventory levels', resource: 'inventory', action: 'read', isActive: true },
-      { name: 'update:inventory', description: 'Update inventory levels', resource: 'inventory', action: 'update', isActive: true },
-      { name: 'manage:inventory', description: 'Full inventory management', resource: 'inventory', action: 'manage', isActive: true },
-      
-      // Analytics and Reporting permissions
-      { name: 'read:analytics', description: 'View sales analytics and reports', resource: 'analytics', action: 'read', isActive: true },
-      { name: 'read:reports', description: 'View business reports', resource: 'reports', action: 'read', isActive: true },
-      { name: 'manage:reports', description: 'Generate and manage reports', resource: 'reports', action: 'manage', isActive: true },
-      
-      // Customer Service permissions
-      { name: 'read:support-tickets', description: 'View customer support tickets', resource: 'support', action: 'read', isActive: true },
-      { name: 'update:support-tickets', description: 'Update and resolve support tickets', resource: 'support', action: 'update', isActive: true },
-      { name: 'manage:support', description: 'Full customer support management', resource: 'support', action: 'manage', isActive: true },
-      
-      // Payment and Financial permissions
-      { name: 'read:transactions', description: 'View payment transactions', resource: 'payments', action: 'read', isActive: true },
-      { name: 'process:refunds', description: 'Process customer refunds', resource: 'payments', action: 'refund', isActive: true },
-      { name: 'manage:payments', description: 'Full payment management access', resource: 'payments', action: 'manage', isActive: true }
-    ], { ignoreDuplicates: true });
+    // Create role map ( optimization)
+    const allRoles = await Role.findAll();
+    const roleMap: { [key: string]: string } = {};
+    allRoles.forEach(r => {
+      roleMap[r.name] = r.id;
+    });
 
-    console.log('Permissions created:', permissions.length);
+    console.log(" Roles ready:", Object.keys(roleMap));
 
-    // Get all roles and permissions
-    const adminRole = await Role.findOne({ where: { name: 'admin' } });
-    const managerRole = await Role.findOne({ where: { name: 'manager' } });
-    const sellerRole = await Role.findOne({ where: { name: 'seller' } });
-    const staffRole = await Role.findOne({ where: { name: 'staff' } });
-    const userRole = await Role.findOne({ where: { name: 'user' } });
+    // 2. Create Permissions
+    const permissionsData = [
+      // User Management
+      { name: 'read:users', resource: 'users', action: 'read', isActive: true },
+      { name: 'create:users', resource: 'users', action: 'create', isActive: true },
+      { name: 'update:users', resource: 'users', action: 'update', isActive: true },
+      { name: 'delete:users', resource: 'users', action: 'delete', isActive: true },
+      { name: 'manage:users', resource: 'users', action: 'manage', isActive: true },
 
-    if (!adminRole || !managerRole || !sellerRole || !staffRole || !userRole) {
-      throw new Error('Roles not found');
-    }
+      // Products
+      { name: 'read:products', resource: 'products', action: 'read', isActive: true },
+      { name: 'create:products', resource: 'products', action: 'create', isActive: true },
+      { name: 'update:products', resource: 'products', action: 'update', isActive: true },
+      { name: 'delete:products', resource: 'products', action: 'delete', isActive: true },
+      { name: 'manage:products', resource: 'products', action: 'manage', isActive: true },
+      { name: 'manage:own-products', resource: 'products', action: 'manage-own', isActive: true },
 
-    // Assign ALL permissions to admin (full system access)
+      // Orders
+      { name: 'read:orders', resource: 'orders', action: 'read', isActive: true },
+      { name: 'create:orders', resource: 'orders', action: 'create', isActive: true },
+      { name: 'update:orders', resource: 'orders', action: 'update', isActive: true },
+      { name: 'delete:orders', resource: 'orders', action: 'delete', isActive: true },
+      { name: 'manage:orders', resource: 'orders', action: 'manage', isActive: true },
+      { name: 'process:orders', resource: 'orders', action: 'process', isActive: true },
+      { name: 'read:own-orders', resource: 'orders', action: 'read-own', isActive: true },
+
+      // Categories
+      { name: 'read:categories', resource: 'categories', action: 'read', isActive: true },
+      { name: 'create:categories', resource: 'categories', action: 'create', isActive: true },
+      { name: 'update:categories', resource: 'categories', action: 'update', isActive: true },
+      { name: 'delete:categories', resource: 'categories', action: 'delete', isActive: true },
+      { name: 'manage:categories', resource: 'categories', action: 'manage', isActive: true },
+
+      // Inventory
+      { name: 'read:inventory', resource: 'inventory', action: 'read', isActive: true },
+      { name: 'update:inventory', resource: 'inventory', action: 'update', isActive: true },
+      { name: 'manage:inventory', resource: 'inventory', action: 'manage', isActive: true },
+
+      // Analytics
+      { name: 'read:analytics', resource: 'analytics', action: 'read', isActive: true },
+      { name: 'read:reports', resource: 'reports', action: 'read', isActive: true },
+      { name: 'manage:reports', resource: 'reports', action: 'manage', isActive: true },
+
+      // Support
+      { name: 'read:support-tickets', resource: 'support', action: 'read', isActive: true },
+      { name: 'update:support-tickets', resource: 'support', action: 'update', isActive: true },
+      { name: 'manage:support', resource: 'support', action: 'manage', isActive: true },
+
+      // Payments
+      { name: 'read:transactions', resource: 'payments', action: 'read', isActive: true },
+      { name: 'process:refunds', resource: 'payments', action: 'refund', isActive: true },
+      { name: 'manage:payments', resource: 'payments', action: 'manage', isActive: true },
+
+      // Seller Management
+      { name: 'read:sellers', resource: 'sellers', action: 'read', isActive: true },
+      { name: 'manage:sellers', resource: 'sellers', action: 'manage', isActive: true },
+      { name: 'approve:sellers', resource: 'sellers', action: 'approve', isActive: true },
+
+      //Dashboard Access
+      { 
+  name: 'access:admin-dashboard',
+  resource: 'dashboard',
+  action: 'admin-access',
+  isActive: true
+},
+{ 
+  name: 'access:seller-dashboard',
+  resource: 'dashboard',
+  action: 'seller-access',
+  isActive: true
+},
+    ];
+
+    await Permission.bulkCreate(permissionsData, { ignoreDuplicates: true });
+
     const allPermissions = await Permission.findAll();
-    const adminRolePermissions = allPermissions.map(permission => ({
-      roleId: adminRole.id,
-      permissionId: permission.id
-    }));
 
-    await RolePermission.bulkCreate(adminRolePermissions, { ignoreDuplicates: true });
-    console.log('Admin permissions assigned (full access)');
-
-    // Assign comprehensive permissions to manager (oversight and reporting)
-    const managerPermissions = await Permission.findAll({
-      where: {
-        name: [
-          'read:users', 'create:users', 'update:users',
-          'read:products', 'create:products', 'update:products', 'delete:products',
-          'read:orders', 'update:orders', 'manage:orders', 'process:orders',
-          'read:categories', 'create:categories', 'update:categories', 'delete:categories',
-          'read:inventory', 'update:inventory', 'manage:inventory',
-          'read:analytics', 'read:reports', 'manage:reports',
-          'read:support-tickets', 'update:support-tickets', 'manage:support',
-          'read:transactions', 'process:refunds'
-        ]
-      }
+    // Create permission map ( optimization)
+    const permissionMap: { [key: string]: string } = {};
+    allPermissions.forEach(p => {
+      permissionMap[p.name] = p.id;
     });
 
-    const managerRolePermissions = managerPermissions.map(permission => ({
-      roleId: managerRole.id,
-      permissionId: permission.id
-    }));
+    console.log("✅ Permissions ready:", Object.keys(permissionMap).length);
 
-    await RolePermission.bulkCreate(managerRolePermissions, { ignoreDuplicates: true });
-    console.log('Manager permissions assigned (oversight and reporting)');
+    // Helper to assign permissions
+    const assignPermissions = async (roleName: string, permissionNames: string[]) => {
+      const roleId = roleMap[roleName];
 
-    // Assign seller-specific permissions (manage own products and orders)
-    const sellerPermissions = await Permission.findAll({
-      where: {
-        name: [
-          'read:products', 'create:products', 'update:products', 'delete:products',
-          'manage:own-products', 'read:orders', 'read:own-orders', 'update:orders',
-          'read:categories', 'read:inventory', 'read:analytics', 'read:reports',
-          'read:support-tickets', 'update:support-tickets', 'read:transactions'
-        ]
+     const rolePermissions = permissionNames
+  .filter(name => permissionMap[name])
+  .map((name: string) => ({
+    roleId,
+    permissionId: permissionMap[name]
+  }));
+
+      await RolePermission.bulkCreate(rolePermissions, { ignoreDuplicates: true });
+    };
+
+    // 3. Assign Permissions
+
+    // Admin → ALL
+    await assignPermissions('admin', Object.keys(permissionMap));
+
+
+
+    // Manager
+    await assignPermissions('manager', [
+       'access:admin-dashboard',
+  'access:seller-dashboard',
+      'read:users','create:users','update:users',
+      'read:products','create:products','update:products','delete:products',
+      'read:orders','update:orders','manage:orders','process:orders',
+      'read:categories','create:categories','update:categories','delete:categories',
+      'read:inventory','update:inventory','manage:inventory',
+      'read:analytics','read:reports','manage:reports',
+      'read:support-tickets','update:support-tickets','manage:support',
+      'read:transactions','process:refunds',
+      'read:sellers','manage:sellers','approve:sellers'
+    ]);
+    
+
+    // Seller
+    await assignPermissions('seller', [
+      'access:seller-dashboard',
+      'read:products','create:products','update:products','delete:products',
+      'manage:own-products','read:orders','read:own-orders','update:orders',
+      'read:categories','read:inventory','read:analytics','read:reports',
+      'read:support-tickets','update:support-tickets','read:transactions'
+    ]);
+
+    // Staff
+    await assignPermissions('staff', [
+      'read:products','read:orders','update:orders','process:orders',
+      'read:categories','read:inventory','update:inventory',
+      'read:support-tickets','update:support-tickets','manage:support',
+      'read:transactions','process:refunds','read:analytics','read:reports'
+    ]);
+
+    // User
+    await assignPermissions('user', [
+      'read:products','create:orders','read:own-orders','update:orders',
+      'read:categories','read:support-tickets','update:support-tickets'
+    ]);
+
+    // 4. Create Admin User from Environment Variables
+    console.log("   Creating admin user...");
+
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminName = process.env.ADMIN_NAME || 'System Administrator';
+
+    if (!adminEmail || !adminPassword) {
+      console.warn("   Warning: ADMIN_EMAIL or ADMIN_PASSWORD not found in .env file");
+      console.warn("   Admin user creation skipped. Please set these environment variables.");
+    } else {
+      // Hash admin password before storing
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(adminPassword, saltRounds);
+      
+      // Create admin user
+      const [adminUser, created] = await User.findOrCreate({
+        where: { email: adminEmail },
+        defaults: {
+          name: adminName,
+          email: adminEmail,
+          password: hashedPassword
+        }
+      });
+
+      if (created) {
+        console.log(`   Admin user created: ${adminEmail}`);
+      } else {
+        console.log(`   Admin user already exists: ${adminEmail}`);
       }
-    });
 
-    const sellerRolePermissions = sellerPermissions.map(permission => ({
-      roleId: sellerRole.id,
-      permissionId: permission.id
-    }));
-
-    await RolePermission.bulkCreate(sellerRolePermissions, { ignoreDuplicates: true });
-    console.log('Seller permissions assigned (product and order management)');
-
-    // Assign staff permissions (order processing and customer service)
-    const staffPermissions = await Permission.findAll({
-      where: {
-        name: [
-          'read:products', 'read:orders', 'update:orders', 'process:orders',
-          'read:categories', 'read:inventory', 'update:inventory',
-          'read:support-tickets', 'update:support-tickets', 'manage:support',
-          'read:transactions', 'process:refunds', 'read:analytics', 'read:reports'
-        ]
+      // Assign admin role to the admin user
+      const adminRoleId = roleMap['admin'];
+      if (adminRoleId) {
+        await UserRole.findOrCreate({
+          where: { 
+            userId: adminUser.id, 
+            roleId: adminRoleId 
+          },
+          defaults: {
+            userId: adminUser.id,
+            roleId: adminRoleId
+          }
+        });
+        console.log(`   Admin role assigned to user: ${adminEmail}`);
       }
-    });
+    }
+    console.log("   RBAC seeding completed successfully!");
 
-    const staffRolePermissions = staffPermissions.map(permission => ({
-      roleId: staffRole.id,
-      permissionId: permission.id
-    }));
-
-    await RolePermission.bulkCreate(staffRolePermissions, { ignoreDuplicates: true });
-    console.log('Staff permissions assigned (order processing and support)');
-
-    // Assign basic customer permissions to user role
-    const userPermissions = await Permission.findAll({
-      where: {
-        name: [
-          'read:products', 'create:orders', 'read:own-orders', 'update:orders',
-          'read:categories', 'read:support-tickets', 'update:support-tickets'
-        ]
-      }
-    });
-
-    const userRolePermissions = userPermissions.map(permission => ({
-      roleId: userRole.id,
-      permissionId: permission.id
-    }));
-
-    await RolePermission.bulkCreate(userRolePermissions, { ignoreDuplicates: true });
-    console.log('User permissions assigned (customer shopping)');
-
-    console.log('RBAC seeding completed successfully!');
   } catch (error) {
-    console.error('Error seeding RBAC:', error);
+    console.error("❌ RBAC seeding failed:", error);
     throw error;
   }
 };
