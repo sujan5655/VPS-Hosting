@@ -1,32 +1,23 @@
 {
   "compilerOptions": {
-    /* Modern JavaScript & Browser Compatibility: */
-    "target": "ES2022", // Uses modern ECMAScript features
+    "target": "ES2022",
+    "module": "ES2020",
+    "moduleResolution": "NodeNext",
+    "rootDir": "src",
+    "outDir": "dist",
 
-    /* Module System Settings: */
-    "module": "CommonJS", // Use CommonJS for Node.js backend
-    "rootDir": "src", // Specifies the source directory for your code
-    "outDir": "dist", // Specifies the output directory for compiled files
-    "sourceMap": true, // Enables source maps for easier debugging
-    "types": ["node"], // Include Node.js type definitions
+    "sourceMap": true,
+    "types": ["node"],
 
-    /* Module Resolution Strategy: */
-    "moduleResolution": "bundler", // Resolves modules using bundler strategy
-    "ignoreDeprecations": "6.0", // Ignore deprecation warnings
-    "esModuleInterop": true, // Ensures compatibility between CommonJS and ESM modules
-    "forceConsistentCasingInFileNames": true, // Prevents case-sensitivity issues across platforms
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
 
-    /* Decorator Support: */
-    "experimentalDecorators": true, // Enables experimental decorator support
-    "emitDecoratorMetadata": true, // Enables metadata emission for decorators
-    "strictPropertyInitialization": false, // Allow decorators on properties without initialization
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
-    /* Strict Type-Checking: */
-    "strict": true, // Enables strict type-checking for fewer runtime errors
-
-    /* Skip lib check for .d.ts files: */
+    "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src"], // Includes the `src` directory in the project
-  "exclude": ["node_modules", "dist"] // Excludes the `node_modules` and `dist` directories from the project
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
