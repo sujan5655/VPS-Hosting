@@ -26,8 +26,12 @@ async function setupProduction() {
  
 
     // 🔥 FIX HERE
-    await sequelize.sync(); // or replace with migrations
+    await sequelize.sync({ force: false }); // Wait for all tables to be created
     console.log("📦 Database synced");
+    
+    // Small delay to ensure tables are fully created
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
     // 🧠 Step 1: RBAC seed (idempotent inside seedRBAC)
     console.log("📋 Seeding RBAC...");
     await seedRBAC();
