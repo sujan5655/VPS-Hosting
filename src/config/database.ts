@@ -1,7 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+
 import { User } from "../models/User.js";
 import { Role } from "../models/Role.js";
 import { Permission } from "../models/Permission.js";
@@ -18,7 +17,6 @@ import { OrderItem } from "../models/OrderItem.js";
 
 dotenv.config();
 
-const __dirname = dirname(__filename);
 
 const sequelize = new Sequelize({
   database: process.env.DB_NAME || "ecommerce",
