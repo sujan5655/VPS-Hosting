@@ -1,6 +1,14 @@
 import { seedRBAC } from "../seed/rbacSeed.js";
 import { createAdmin } from "./createAdmin.js";
 import { sequelize } from "../config/database.js";
+import { Role } from "../models/Role.js";
+import { User } from "../models/User.js";
+import { UserRole } from "../models/UserRole.js";
+import { Product } from "../models/ProductModel.js";
+import { Order } from "../models/Order.js";
+import SellerApplication from "../models/SellerApplication.js";
+import { Cart } from "../models/Cart.js";
+import { CartItem } from "../models/CartItem.js";
 
 async function setupProduction() {
   try {
