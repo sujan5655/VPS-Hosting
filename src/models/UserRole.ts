@@ -28,9 +28,5 @@ export class UserRole extends Model {
   })
   declare roleId: string;
 
-  @BelongsTo(() => User)
-  declare user: User;
-
-  @BelongsTo(() => Role)
-  declare role: Role;
+  // Associations moved to associations.ts to avoid circular imports
 }

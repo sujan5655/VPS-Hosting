@@ -41,10 +41,7 @@ export class Role extends Model {
   })
   declare isActive: boolean;
 
-  @BelongsToMany(() => User, () => UserRole)
-  declare users: User[];
-  @BelongsToMany(() => Permission, () => RolePermission)
-declare permissions: Permission[];
+  // Associations moved to associations.ts to avoid circular imports
 
 
 }

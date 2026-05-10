@@ -38,6 +38,5 @@ export class User extends Model {
   })
   declare password: string;
 
-  @BelongsToMany(() => Role, () => UserRole)
-  declare roles: Role[];
+  // Associations moved to associations.ts to avoid circular imports
 }

@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB, sequelize } from "./config/database.js";
+import "./models/associations.js";
 import app from "./app.js";
 import { cleanupDuplicateCategories } from "./seed/cleanupCategories.js";
 import { seedCategories } from "./seed/categorySeed.js";
