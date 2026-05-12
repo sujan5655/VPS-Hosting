@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 interface AuthRequest extends Request {
   user?: any;
   permissions?: string[];
-  roles?: any[];
+  roles?: Role[];
 }
 
 /**
@@ -52,7 +52,7 @@ export const authenticateToken = async (
      * ATTACH USER TO REQUEST
      */
     req.user = user;
-    req.roles = user.roles;
+    req.roles = user.roles ?? [];
 
     /**
      * PRELOAD PERMISSIONS (OPTIMIZATION)
@@ -60,8 +60,8 @@ export const authenticateToken = async (
      */
     console.log("🔐 authenticateToken: Loading permissions for user:", user.email);
     
-    const roleIds = user.roles.map((role: any) => role.id);
-    console.log("   User roles:", user.roles.map(r => r.name).join(', '));
+    const roleIds = (user.roles ?? []).map((role: Role) => role.id);
+    console.log("   User roles:", (user.roles ?? []).map((r: Role) => r.name).join(", "));
     console.log("   Role IDs:", roleIds.join(', '));
 
     const rolePermissions = await RolePermission.findAll({

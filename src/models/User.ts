@@ -3,10 +3,8 @@ import {
   Column,
   Model,
   DataType,
-  BelongsToMany,
 } from "sequelize-typescript";
 import { Role } from "./Role.js";
-import { UserRole } from "./UserRole.js";
 
 @Table({
   tableName: "users",
@@ -38,5 +36,5 @@ export class User extends Model {
   })
   declare password: string;
 
-  // Associations moved to associations.ts to avoid circular imports
+  declare roles?: Role[];
 }

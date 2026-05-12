@@ -13,8 +13,8 @@ export const hasPermission=async(
     ]
   })
   if(!user) return false;
-  for(const role of user.roles){
-    for(const perm of role.permissions){
+  for(const role of (user.roles ?? [])){
+    for(const perm of (role.permissions ?? [])){
       if(perm.name===permissionName){
         return true;
       }

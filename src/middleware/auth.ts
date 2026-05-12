@@ -20,7 +20,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-    const user = await User.findByPk(decoded.userId);
+    const user = await User.findByPk(decoded.userId, {
+      include: [{ model: Role, as: "roles" }],
+    });
     
     if (!user) {
       return res.status(401).json({ message: 'Invalid token.' });
@@ -29,7 +31,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     req.user = {
       id: user.id,
       email: user.email,
-      roles: user.roles
+      roles: user.roles ?? []
     };
     
     next();

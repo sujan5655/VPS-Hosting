@@ -297,7 +297,7 @@ export const getUserRoles = async (req: AuthRequest, res: Response) => {
       success: true,
       data: {
         user,
-        roles: user.roles
+        roles: user.roles ?? []
       }
     });
 
