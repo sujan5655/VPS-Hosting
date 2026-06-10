@@ -80,66 +80,40 @@ export const getProducts = async (req: any, res: any) => {
       limit=10
     } = req.query;
 
-    const where: any = {};
+  const where: any = {};
 
-    // 🔍 search by name
-    // if (search) {
-    //   where.name = {
-    //     [Op.like]: `%${search}%`,
-    //   };
-    // }
+// SEARCH
+if (search) {
+  where.name = {
+    [Op.iLike]: `%${search.trim()}%`,
+  };
+}
 
-     // 🔍 SEARCH (name only) - case-insensitive matching using multiple conditions
-    if (search) {
-      const searchTerm = search.trim();
-      const searchTermLower = searchTerm.toLowerCase();
-      const searchTermUpper = searchTerm.toUpperCase();
-      
-      // Match both lowercase and uppercase versions
-      where[Op.or] = [
-        {
-          name: {
-            [Op.iLike]: `%${searchTermLower}%`,
-          },
-        },
-        {
-          name: {
-            [Op.iLike]: `%${searchTermUpper}%`,
-          },
-        },
-        {
-          name: {
-            [Op.iLike]: `%${searchTerm}%`,
-          },
-        },
-      ];
-    }
-    // 💰 price filter
-    if (minPrice && maxPrice) {
-      where.price = {
-        [Op.between]: 
-        [Number(minPrice), 
-          Number(maxPrice)],
-      };
-    }
+// PRICE
+if (minPrice && maxPrice) {
+  where.price = {
+    [Op.between]: [Number(minPrice), Number(maxPrice)],
+  };
+}
 
-    // 📂 category filter
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
-    // 👕 gender filter (inside JSON attributes)
-    if (gender) {
-      where.attributes = {
-        gender: gender,
-      };
-    }
+// CATEGORY
+if (categoryId) {
+  where.categoryId = Number(categoryId);
+}
 
-    // 📏 size filter (JSON array contains check)
-    if (size) {
-      where.sizes = {
-        [Op.contains]: [size],
-      };
-    }
+// GENDER (JSONB safe)
+if (gender) {
+  where.attributes = {
+    [Op.contains]: { gender },
+  };
+}
+
+// SIZE (ONLY if ARRAY type)
+if (size) {
+  where.sizes = {
+    [Op.contains]: [size],
+  };
+}
     //Sorting
     let order:any=[]
     switch (sort) {
